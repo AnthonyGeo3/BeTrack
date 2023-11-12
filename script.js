@@ -73,6 +73,33 @@ document.getElementById('homeButton').onclick = function() {
     document.getElementById('logPage').style.display = 'none';
 };
 
+document.getElementById('exportButton').onclick = function() {
+    let csvContent = "data:text/csv;charset=utf-8,";
+
+    // CSV Header
+    csvContent += "Start Time,End Time,Duration,Category\n";
+
+    // Loop through logs and add rows
+    logs.forEach(log => {
+        let start = new Date(log.start).toLocaleString();
+        let end = new Date(log.end).toLocaleString();
+        let duration = log.duration;
+        let category = log.category || "None";
+        csvContent += `${start},${end},${duration},${category}\n`;
+    });
+
+    // Encoding and Creating Download Link
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "logs.csv");
+    document.body.appendChild(link); // Required for FF
+
+    link.click(); // Trigger download
+
+    document.body.removeChild(link); // Clean up
+};
+
 function increaseTime() {
     elapsedTime++;
     updateDisplay();
