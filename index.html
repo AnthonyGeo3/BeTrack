@@ -3,14 +3,19 @@
 <head>
     <title>Behavior Tracker</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
     <div id="homePage"></div>
     <h1>Behavior Tracking Tool</h1>
-    <button id="exportButton">Export Logs</button>
-    <button id="startButton">Start</button>
-    <button id="stopButton">Stop</button>
-    <button id="reduceButton">Reduce Time</button>
+    <div class="header">
+        <button id="exportButton">Export Logs</button>
+    </div>
+    <div class="controls">
+        <button id="startButton">Start</button>
+        <button id="stopButton">Stop</button>
+        <button id="reduceButton">Reduce Time</button>
+    </div>
     <div id="timeDisplay">Time: 0</div>
     <div id="log"></div>
     <button id="viewLogButton">Show Log</button>

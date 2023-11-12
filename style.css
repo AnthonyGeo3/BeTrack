@@ -4,6 +4,7 @@ body {
     color: #fff;
     text-align: center;
     padding: 20px;
+    margin: 0;
 }
 
 button {
@@ -17,8 +18,28 @@ button {
     font-size: 16px;
     margin: 4px 2px;
     cursor: pointer;
+    border-radius: 5px; /* Slight rounding of corners for a modern look */
 }
 
 button:hover {
     background-color: #8FD6E8;
+}
+
+.header {
+    text-align: right; /* Align to the right for top-right placement */
+    padding: 10px;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    button {
+        padding: 15px 30px; /* Larger padding for easier touch */
+        font-size: 18px; /* Slightly larger font for readability */
+    }
+
+    /* Adjust other styles as needed for mobile */
 }
