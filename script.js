@@ -112,14 +112,29 @@ function decreaseTime() {
 
 function updateDisplay() {
     let timeDisplay = document.getElementById('timeDisplay');
-    localStorage.setItem('elapsedTime', elapsedTime);
-    timeDisplay.textContent = 'Time: ' + elapsedTime;
+    let seconds = elapsedTime % 60;
+    let minutes = Math.floor(elapsedTime / 60) % 60;
+    let hours = Math.floor(elapsedTime / 3600);
+
+    let displayText = '';
+    if (hours > 0) {
+        displayText += hours + ' h ';
+    }
+    if (minutes > 0 || hours > 0) {
+        displayText += minutes + ' m ';
+    }
+    displayText += seconds + ' s';
+
+    timeDisplay.textContent = 'Time: ' + displayText;
 
     if (elapsedTime < 0) {
-        timeDisplay.style.color = 'red'; // Change font color to red
+        timeDisplay.style.color = 'red'; // Change font color to red if the time is negative
     } else {
         timeDisplay.style.color = 'white'; // Change it back to white (or any other default color)
     }
+
+    // Save to local storage
+    localStorage.setItem('elapsedTime', elapsedTime);
 }
 
 function displayLogs() {
