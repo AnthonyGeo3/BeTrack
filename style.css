@@ -30,6 +30,27 @@ button:hover {
     padding: 10px;
 }
 
+/* Style for individual log entries */
+.log-entry {
+    background-color: #06283D; /* Darker background for each entry */
+    color: #fff;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px; /* Rounded corners for each log entry */
+}
+
+/* Style for log details within the entry */
+.log-details {
+    margin-bottom: 5px;
+}
+
+/* Styles for buttons within log entries */
+.log-entry button {
+    font-size: 14px; /* Smaller font size for buttons within log entries */
+    margin: 2px; /* Smaller margin for tighter layout */
+    padding: 8px 16px; /* Adjust padding for buttons within log entries */
+}
+
 /* Responsive styles */
 @media screen and (max-width: 600px) {
     body {
@@ -41,5 +62,12 @@ button:hover {
         font-size: 18px; /* Slightly larger font for readability */
     }
 
-    /* Adjust other styles as needed for mobile */
+    /* Specific styles for log entries on mobile */
+    .log-entry {
+        font-size: 14px; /* Smaller font size for the log text */
+    }
+
+    .log-entry button {
+        font-size: 12px; /* Even smaller font size for buttons on mobile */
+    }
 }

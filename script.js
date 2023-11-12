@@ -127,10 +127,13 @@ function displayLogs() {
     logContainer.innerHTML = ''; // Clear existing logs
 
     logs.forEach((log, index) => {
-        let start = new Date(log.start);
-        let end = new Date(log.end);
+        let logEntryDiv = document.createElement('div');
+        logEntryDiv.className = 'log-entry';
 
-        let logElement = document.createElement('div');
+        let logDetailsSpan = document.createElement('span');
+        logDetailsSpan.className = 'log-details';
+        logDetailsSpan.textContent = `Start: ${new Date(log.start).toLocaleString()}, End: ${new Date(log.end).toLocaleString()}, Duration: ${log.duration} seconds`;
+
         let categoryButton = document.createElement('button');
         categoryButton.textContent = 'Category';
         categoryButton.onclick = function() { addCategory(index); };
@@ -139,15 +142,13 @@ function displayLogs() {
         deleteButton.textContent = 'Delete';
         deleteButton.onclick = function() { removeLog(index); };
 
-        let categoryDisplay = document.createElement('span');
-        categoryDisplay.textContent = log.category ? ` - Category: ${log.category}` : ' - Category: None';
-        categoryDisplay.id = `category-${index}`;
+        // Append all elements to the log entry div
+        logEntryDiv.appendChild(logDetailsSpan);
+        logEntryDiv.appendChild(categoryButton);
+        logEntryDiv.appendChild(deleteButton);
 
-        logElement.textContent = `Start: ${start.toLocaleString()}, End: ${end.toLocaleString()}, Duration: ${log.duration} seconds`;
-        logElement.appendChild(categoryButton);
-        logElement.appendChild(categoryDisplay);
-        logElement.appendChild(deleteButton);
-        logContainer.appendChild(logElement);
+        // Append this log entry to the log container
+        logContainer.appendChild(logEntryDiv);
     });
 }
 
