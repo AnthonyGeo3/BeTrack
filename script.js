@@ -134,9 +134,15 @@ function displayLogs() {
         logDetailsSpan.className = 'log-details';
         logDetailsSpan.textContent = `Start: ${new Date(log.start).toLocaleString()}, End: ${new Date(log.end).toLocaleString()}, Duration: ${log.duration} seconds`;
 
+        let categorySpan = document.createElement('span');
+        categorySpan.id = `category-${index}`;
+        categorySpan.className = 'log-category';
+        categorySpan.textContent = log.category ? ` - Category: ${log.category}` : ' - Category: None';
+
         let categoryButton = document.createElement('button');
         categoryButton.textContent = 'Category';
-        categoryButton.onclick = function() { addCategory(index); };
+        // The addCategory function will need to be modified to work with this setup
+        categoryButton.onclick = function() { addCategory(index, categorySpan.id); };
 
         let deleteButton = document.createElement('button');
         deleteButton.textContent = 'Delete';
@@ -144,6 +150,7 @@ function displayLogs() {
 
         // Append all elements to the log entry div
         logEntryDiv.appendChild(logDetailsSpan);
+        logEntryDiv.appendChild(categorySpan);
         logEntryDiv.appendChild(categoryButton);
         logEntryDiv.appendChild(deleteButton);
 
@@ -160,6 +167,7 @@ function removeLog(index) {
 }
 
 function addCategory(index) {
+    let categorySpan = document.getElementById(categorySpanId);
     let currentCategory = logs[index].category || 'None';
     let uniqueCategories = getUniqueCategories();
     let dropdownHTML = `<select id="categorySelect-${index}" onchange="selectCategory(${index})">
