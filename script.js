@@ -77,7 +77,7 @@ document.getElementById('exportButton').onclick = function() {
     let csvContent = "data:text/csv;charset=utf-8,";
 
     // CSV Header
-    csvContent += "Start Time,End Time,Duration,Category\n";
+    csvContent += "Start Date,Start Time,End Date,End Time,Duration,Category\n";
 
     // Loop through logs and add rows
     logs.forEach(log => {
