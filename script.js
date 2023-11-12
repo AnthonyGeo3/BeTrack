@@ -112,20 +112,17 @@ function decreaseTime() {
 
 function updateDisplay() {
     let timeDisplay = document.getElementById('timeDisplay');
-    let seconds = elapsedTime % 60;
-    let minutes = Math.floor(elapsedTime / 60) % 60;
-    let hours = Math.floor(elapsedTime / 3600);
+    let totalSeconds = Math.abs(elapsedTime);
+    let seconds = totalSeconds % 60;
+    let minutes = Math.floor(totalSeconds / 60) % 60;
+    let hours = Math.floor(totalSeconds / 3600);
 
-    let displayText = '';
-    if (hours > 0) {
-        displayText += hours + ' h ';
-    }
-    if (minutes > 0 || hours > 0) {
-        displayText += minutes + ' m ';
-    }
-    displayText += seconds + ' s';
+    let formattedTime = (elapsedTime < 0 ? "-" : "") +
+        (hours > 0 ? hours + " h " : "") +
+        (hours > 0 || minutes > 0 ? minutes + " m " : "") +
+        seconds + " s";
 
-    timeDisplay.textContent = 'Time: ' + displayText;
+    timeDisplay.textContent = 'Time: ' + formattedTime;
 
     if (elapsedTime < 0) {
         timeDisplay.style.color = 'red'; // Change font color to red if the time is negative
