@@ -166,18 +166,18 @@ function removeLog(index) {
     displayLogs(); // Refresh the log display
 }
 
-function addCategory(index) {
+function addCategory(index, categorySpanId) {
     let categorySpan = document.getElementById(categorySpanId);
     let currentCategory = logs[index].category || 'None';
     let uniqueCategories = getUniqueCategories();
-    let dropdownHTML = `<select id="categorySelect-${index}" onchange="selectCategory(${index})">
-                            <option value="${currentCategory}">${currentCategory}</option>
-                            ${uniqueCategories.map(cat => cat !== currentCategory ? `<option value="${cat}">${cat}</option>` : '').join('')}
-                            <option value="new">-- Add New --</option>
+
+    let dropdownHTML = `<select id="categorySelect-${index}" onchange="selectCategory(${index}, this.value)">
+                            <option value="">Select a category</option>
+                            ${uniqueCategories.map(cat => `<option value="${cat}" ${cat === currentCategory ? 'selected' : ''}>${cat}</option>`).join('')}
+                            <option value="new">Add New Category</option>
                         </select>`;
-    
-    let categoryDisplay = document.getElementById(`category-${index}`);
-    categoryDisplay.innerHTML = dropdownHTML;
+
+    categorySpan.innerHTML = dropdownHTML;
 }
 
 function getUniqueCategories() {
@@ -190,9 +190,7 @@ function getUniqueCategories() {
     return Array.from(uniqueCategories);
 }
 
-function selectCategory(index) {
-    let selectedValue = document.getElementById(`categorySelect-${index}`).value;
-    
+function selectCategory(index, selectedValue) {
     if (selectedValue === 'new') {
         let newCategory = prompt("Enter a new category:");
         if (newCategory) {

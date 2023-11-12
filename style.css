@@ -51,6 +51,23 @@ button:hover {
     padding: 8px 16px; /* Adjust padding for buttons within log entries */
 }
 
+/* Style for the dropdown within the log entry */
+.log-category select {
+    padding: 5px 10px;
+    margin-top: 5px; /* Add some space above the dropdown */
+    background: #fff; /* Light background for the dropdown */
+    color: #03131A; /* Text color for the dropdown options */
+    border: 1px solid #D4FF9D; /* Border color to match your button style */
+    border-radius: 5px; /* Rounded corners for the dropdown */
+    font-size: 14px; /* Font size to match other buttons */
+}
+
+/* Adjust the styling for the category span to display inline with buttons */
+.log-category {
+    display: inline-block; /* Align with buttons */
+    margin-right: 4px; /* Consistent spacing with buttons */
+}
+
 /* Responsive styles */
 @media screen and (max-width: 600px) {
     body {
