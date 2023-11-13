@@ -100,6 +100,49 @@ document.getElementById('exportButton').onclick = function() {
     document.body.removeChild(link); // Clean up
 };
 
+// Function to update time based on input
+document.getElementById('updateTimeButton').onclick = function() {
+    // Read value from input field
+    let inputMinutes = document.getElementById('inputMinutes').value.trim();
+
+    // Check if the input is a valid number (positive or negative)
+    if (/^-?\d+$/.test(inputMinutes)) {
+        // Parse the input value as an integer
+        let minutesToUpdate = parseInt(inputMinutes, 10);
+
+        // Convert minutes to seconds
+        let timeChange = minutesToUpdate * 60;
+
+        // Update elapsedTime with the time change
+        elapsedTime += timeChange;
+
+        // Update display and logs
+        updateDisplay();
+        addLogEntry(timeChange >= 0 ? 'Manual Addition' : 'Manual Subtraction', timeChange);
+    } else {
+        alert('Please enter a valid whole number for minutes.');
+    }
+
+    // Clear the input field after updating
+    document.getElementById('inputMinutes').value = '';
+};
+
+// Function to subtract manual time
+document.getElementById('subtractTimeButton').onclick = function() {
+    // Read values from input fields
+    let hoursToSubtract = parseInt(document.getElementById('inputHours').value) || 0;
+    let minutesToSubtract = parseInt(document.getElementById('inputMinutes').value) || 0;
+    let secondsToSubtract = parseInt(document.getElementById('inputSeconds').value) || 0;
+
+    // Convert everything to seconds and subtract from elapsedTime
+    let timeToSubtract = (hoursToSubtract * 3600) + (minutesToSubtract * 60) + secondsToSubtract;
+    elapsedTime -= timeToSubtract;
+
+    // Update display and logs
+    updateDisplay();
+    addLogEntry('Manual Subtraction', -timeToSubtract);
+};
+
 function increaseTime() {
     elapsedTime++;
     updateDisplay();
@@ -108,6 +151,21 @@ function increaseTime() {
 function decreaseTime() {
     elapsedTime--;
     updateDisplay();
+}
+
+// Function to add log entry for manual time updates
+function addLogEntry(action, timeChange) {
+    let now = new Date();
+    logs.push({
+        start: now,
+        end: now,
+        duration: timeChange,
+        category: action // 'Manual Addition' or 'Manual Subtraction'
+    });
+
+    // Save the log and update the display
+    localStorage.setItem('logs', JSON.stringify(logs));
+    displayLogs();
 }
 
 function updateDisplay() {

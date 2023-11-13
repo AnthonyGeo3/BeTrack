@@ -8,17 +8,28 @@
 </head>
 <body>
     <div id="homePage"></div>
+
     <h1>Behavior Tracking Tool</h1>
+
     <div class="header">
         <button id="exportButton">Export Logs</button>
     </div>
+
+    <div id="manualTimeEntry">
+        <input type="text" id="inputMinutes" placeholder="Minutes (e.g., 20 or -20)" pattern="^-?\d+$" title="Enter whole minutes, with a minus sign for subtraction if necessary">
+        <button id="updateTimeButton">Update Time</button>
+    </div>
+
     <div class="controls">
         <button id="startButton">Start</button>
         <button id="stopButton">Stop</button>
         <button id="reduceButton">Reduce Time</button>
     </div>
+
     <div id="timeDisplay">Time: 0</div>
+
     <div id="log"></div>
+
     <button id="viewLogButton">Show Log</button>
 
     <div id="logPage" style="display: none;">
