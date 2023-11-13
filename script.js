@@ -36,35 +36,40 @@ document.getElementById('reduceButton').onclick = function() {
 };
 
 document.getElementById('stopButton').onclick = function() {
-    let endTime = new Date(); 
-    let sessionDuration = Math.floor((endTime - startTime) / 1000);
+    // Only proceed if a timer was running
+    if (increaseTimer !== null || decreaseTimer !== null) {
+        let endTime = new Date(); 
+        let sessionDuration = Math.floor((endTime - startTime) / 1000);
 
-    if (sessionType === 'decrease') {
-        sessionDuration = -sessionDuration; // Make duration negative for decrease sessions
+        // Determine if we are logging an increase or decrease session
+        if (sessionType === 'increase') {
+            sessionDuration = Math.abs(sessionDuration); // Ensure it's positive
+        } else if (sessionType === 'decrease') {
+            sessionDuration = -Math.abs(sessionDuration); // Ensure it's negative
+        }
+
+        logs.push({
+            start: startTime,
+            end: endTime,
+            duration: sessionDuration
+        });
+
+        // Clear both timers
+        clearInterval(increaseTimer);
+        clearInterval(decreaseTimer);
+        increaseTimer = null;
+        decreaseTimer = null;
+        
+        // Save logs to local storage
+        localStorage.setItem('logs', JSON.stringify(logs));
+        
+        // Reset session type and start time
+        sessionType = null;
+        startTime = null;
+
+        // Display the updated logs
+        displayLogs();
     }
-
-    // Update elapsedTime with the session duration
-    elapsedTime += sessionDuration; // Add or subtract the session duration
-
-    logs.push({
-        start: startTime,
-        end: endTime,
-        duration: sessionDuration
-    });
-
-    clearInterval(increaseTimer);
-    clearInterval(decreaseTimer);
-    increaseTimer = null;
-    decreaseTimer = null;
-    startTime = null; // Reset startTime for the next session
-
-    // Save elapsedTime and logs to local storage
-    localStorage.setItem('elapsedTime', elapsedTime);
-    localStorage.setItem('logs', JSON.stringify(logs)); // Save logs to local storage
-
-    sessionType = null; // Reset session type
-
-    updateDisplay(); // Update the display with the new time
 };
 
 // Show Logs
@@ -132,22 +137,6 @@ document.getElementById('updateTimeButton').onclick = function() {
         // If inputMinutes is not null and input is invalid, alert the user
         alert('Please enter a valid whole number for minutes.');
     }
-};
-
-// Function to subtract manual time
-document.getElementById('subtractTimeButton').onclick = function() {
-    // Read values from input fields
-    let hoursToSubtract = parseInt(document.getElementById('inputHours').value) || 0;
-    let minutesToSubtract = parseInt(document.getElementById('inputMinutes').value) || 0;
-    let secondsToSubtract = parseInt(document.getElementById('inputSeconds').value) || 0;
-
-    // Convert everything to seconds and subtract from elapsedTime
-    let timeToSubtract = (hoursToSubtract * 3600) + (minutesToSubtract * 60) + secondsToSubtract;
-    elapsedTime -= timeToSubtract;
-
-    // Update display and logs
-    updateDisplay();
-    addLogEntry('Manual Subtraction', -timeToSubtract);
 };
 
 function increaseTime() {
@@ -292,12 +281,20 @@ function selectCategory(index, selectedValue) {
 
 
 window.onload = function() {
+    console.log('Loading stored values...'); // Debugging line
     if (localStorage.getItem('elapsedTime')) {
         elapsedTime = parseInt(localStorage.getItem('elapsedTime'));
+        console.log('Loaded elapsedTime:', elapsedTime); // Debugging line
         updateDisplay();
+    } else {
+        console.log('No elapsedTime in localStorage'); // Debugging line
     }
 
     if (localStorage.getItem('logs')) {
         logs = JSON.parse(localStorage.getItem('logs')); // Retrieve and parse logs
+        console.log('Loaded logs:', logs); // Debugging line
+        displayLogs();
+    } else {
+        console.log('No logs in localStorage'); // Debugging line
     }
 };
