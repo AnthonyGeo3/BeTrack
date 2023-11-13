@@ -35,7 +35,6 @@ document.getElementById('reduceButton').onclick = function() {
     }
 };
 
-// Stop both timers and log with positive or negative duration
 document.getElementById('stopButton').onclick = function() {
     let endTime = new Date(); 
     let sessionDuration = Math.floor((endTime - startTime) / 1000);
@@ -43,6 +42,9 @@ document.getElementById('stopButton').onclick = function() {
     if (sessionType === 'decrease') {
         sessionDuration = -sessionDuration; // Make duration negative for decrease sessions
     }
+
+    // Update elapsedTime with the session duration
+    elapsedTime += sessionDuration; // Add or subtract the session duration
 
     logs.push({
         start: startTime,
@@ -56,8 +58,13 @@ document.getElementById('stopButton').onclick = function() {
     decreaseTimer = null;
     startTime = null; // Reset startTime for the next session
 
+    // Save elapsedTime and logs to local storage
+    localStorage.setItem('elapsedTime', elapsedTime);
     localStorage.setItem('logs', JSON.stringify(logs)); // Save logs to local storage
+
     sessionType = null; // Reset session type
+
+    updateDisplay(); // Update the display with the new time
 };
 
 // Show Logs
