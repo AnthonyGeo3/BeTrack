@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #03131A;
-    color: #fff;
+    color: #5b6d44;
     text-align: center;
     padding: 20px;
     margin: 0;
@@ -35,13 +35,29 @@ button:hover {
     color: #03131A;
     border: none;
     padding: 10px 20px;
-    text-align:left;
+    text-align:center;
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
     margin: 4px 2px;
     cursor: pointer;
     border-radius: 5px; /* Slight rounding of corners for a modern look */
+}
+
+/* Adjust the font size of the timer to match the heading */
+#timeDisplay {
+    font-size: 2em; /* This sets the font size relative to the current font size of the body. Adjust as needed. */
+    margin: 20px 0; /* This adds more vertical space around the timer display. Adjust as needed. */
+}
+
+/* Add more padding below the controls */
+.controls {
+    margin-bottom: 20px; /* Adjust the space below the button controls as desired */
+}
+
+/* Adjust the spacing around the 'Show Log' button if needed */
+#viewLogButton {
+    margin-top: 20px; /* This adds space above the 'Show Log' button. Adjust as needed. */
 }
 
 /* Style for individual log entries */
