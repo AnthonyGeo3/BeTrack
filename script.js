@@ -125,8 +125,6 @@ document.getElementById('updateTimeButton').onclick = function() {
         // If inputMinutes is not null and input is invalid, alert the user
         alert('Please enter a valid whole number for minutes.');
     }
-
-    // No need to clear an input field since we're using prompt
 };
 
 // Function to subtract manual time
@@ -147,11 +145,13 @@ document.getElementById('subtractTimeButton').onclick = function() {
 
 function increaseTime() {
     elapsedTime++;
+    localStorage.setItem('elapsedTime', elapsedTime); // Save updated time
     updateDisplay();
 }
 
 function decreaseTime() {
     elapsedTime--;
+    localStorage.setItem('elapsedTime', elapsedTime); // Save updated time
     updateDisplay();
 }
 
