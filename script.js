@@ -100,15 +100,15 @@ document.getElementById('exportButton').onclick = function() {
     document.body.removeChild(link); // Clean up
 };
 
-// Function to update time based on input
+// Function to update time based on input from a prompt
 document.getElementById('updateTimeButton').onclick = function() {
-    // Read value from input field
-    let inputMinutes = document.getElementById('inputMinutes').value.trim();
+    // Use a prompt to get the number of minutes from the user
+    let inputMinutes = prompt("Enter minutes to add or subtract (e.g., 20 or -20):");
 
-    // Check if the input is a valid number (positive or negative)
-    if (/^-?\d+$/.test(inputMinutes)) {
+    // Check if the input is not null and is a valid number (positive or negative)
+    if (inputMinutes !== null && /^-?\d+$/.test(inputMinutes.trim())) {
         // Parse the input value as an integer
-        let minutesToUpdate = parseInt(inputMinutes, 10);
+        let minutesToUpdate = parseInt(inputMinutes.trim(), 10);
 
         // Convert minutes to seconds
         let timeChange = minutesToUpdate * 60;
@@ -119,12 +119,12 @@ document.getElementById('updateTimeButton').onclick = function() {
         // Update display and logs
         updateDisplay();
         addLogEntry(timeChange >= 0 ? 'Manual Addition' : 'Manual Subtraction', timeChange);
-    } else {
+    } else if (inputMinutes !== null) {
+        // If inputMinutes is not null and input is invalid, alert the user
         alert('Please enter a valid whole number for minutes.');
     }
 
-    // Clear the input field after updating
-    document.getElementById('inputMinutes').value = '';
+    // No need to clear an input field since we're using prompt
 };
 
 // Function to subtract manual time
