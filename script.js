@@ -64,6 +64,7 @@ document.getElementById('stopButton').onclick = function() {
 document.getElementById('viewLogButton').onclick = function() {
     document.getElementById('homePage').style.display = 'none';
     document.getElementById('logPage').style.display = 'block';
+    document.getElementById('exportButton').style.display = 'inline-block'; // Show the export button
     displayLogs();
 };
 
@@ -71,6 +72,7 @@ document.getElementById('viewLogButton').onclick = function() {
 document.getElementById('homeButton').onclick = function() {
     document.getElementById('homePage').style.display = 'block';
     document.getElementById('logPage').style.display = 'none';
+    document.getElementById('exportButton').style.display = 'none'; // Hide the export button
 };
 
 document.getElementById('exportButton').onclick = function() {

@@ -25,25 +25,6 @@ button:hover {
     background-color: #8FD6E8;
 }
 
-.header {
-    text-align: right; /* Align to the right for top-right placement */
-    padding: 10px;
-}
-
-.manualTimeEntry button {
-    background-color: #D4FF9D;
-    color: #03131A;
-    border: none;
-    padding: 10px 20px;
-    text-align:center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 5px; /* Slight rounding of corners for a modern look */
-}
-
 /* Adjust the font size of the timer to match the heading */
 #timeDisplay {
     font-size: 2em; /* This sets the font size relative to the current font size of the body. Adjust as needed. */
