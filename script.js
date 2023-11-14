@@ -139,6 +139,19 @@ document.getElementById('updateTimeButton').onclick = function() {
     }
 };
 
+// This function is called when the tab gains focus or the page is refreshed
+function handleVisibilityChange() {
+    if (!document.hidden) {
+        if (startTime) { // If a session was running before the tab lost focus
+            updateTimer(); // Force an update to the timer
+        }
+        updateDisplay(); // Always update the display when the tab is refocused
+    }
+}
+
+// Event listener for when the tab's visibility changes
+document.addEventListener('visibilitychange', handleVisibilityChange, false);
+
 // Function to start increasing or decreasing time
 function startTimer(isIncrease) {
     if (!timerInterval) {
@@ -184,6 +197,22 @@ function stopTimer() {
         // Update display
         updateDisplay();
         displayLogs();
+    }
+}
+
+// Function to update the timer based on the session type and elapsed time
+function updateTimer() {
+    if (sessionType) {
+        let currentTime = Date.now();
+        let sessionDuration = Math.floor((currentTime - startTime) / 1000); // Calculate the duration since the session started
+
+        if (sessionType === 'increase') {
+            elapsedTime += sessionDuration;
+        } else if (sessionType === 'decrease') {
+            elapsedTime = Math.max(0, elapsedTime - sessionDuration); // Prevent negative time
+        }
+
+        startTime = currentTime; // Reset the start time for the next update
     }
 }
 
@@ -345,4 +374,5 @@ window.onload = function() {
     } else {
         console.log('No logs in localStorage'); // Debugging line
     }
+    handleVisibilityChange(); // Update the timer immediately upon loading
 };
