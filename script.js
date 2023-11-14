@@ -216,6 +216,16 @@ function updateTimer() {
     }
 }
 
+// This function ensures that the current session is logged before the window is unloaded
+function handleWindowUnload() {
+    if (sessionType) {
+        stopTimer(true); // Stop the timer and log the session
+    }
+}
+
+// Attach the event handler to the window's beforeunload event
+window.addEventListener('beforeunload', handleWindowUnload);
+
 function increaseTime() {
     elapsedTime++;
     localStorage.setItem('elapsedTime', elapsedTime); // Save updated time
@@ -357,22 +367,29 @@ function selectCategory(index, selectedValue) {
 }
 
 
+// Override the window.onload function to include visibility change handling and to potentially continue timing
 window.onload = function() {
-    console.log('Loading stored values...'); // Debugging line
+    console.log('Loading stored values...');
     if (localStorage.getItem('elapsedTime')) {
         elapsedTime = parseInt(localStorage.getItem('elapsedTime'));
-        console.log('Loaded elapsedTime:', elapsedTime); // Debugging line
-        updateDisplay();
+        console.log('Loaded elapsedTime:', elapsedTime);
     } else {
-        console.log('No elapsedTime in localStorage'); // Debugging line
+        console.log('No elapsedTime in localStorage');
     }
 
     if (localStorage.getItem('logs')) {
-        logs = JSON.parse(localStorage.getItem('logs')); // Retrieve and parse logs
-        console.log('Loaded logs:', logs); // Debugging line
-        displayLogs();
+        logs = JSON.parse(localStorage.getItem('logs'));
+        console.log('Loaded logs:', logs);
     } else {
-        console.log('No logs in localStorage'); // Debugging line
+        console.log('No logs in localStorage');
     }
-    handleVisibilityChange(); // Update the timer immediately upon loading
+
+    // Decide whether to continue timing based on previous state
+    if (sessionType && !timerInterval) {
+        // Continue the timer if the sessionType was set before unloading
+        startTimer(sessionType);
+    }
+
+    updateDisplay();
+    displayLogs();
 };
