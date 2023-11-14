@@ -168,38 +168,23 @@ function startTimer(isIncrease) {
 }
 
 // Function to stop the timer and log the elapsed time
-function stopTimer() {
-    if (timerInterval) {
-        clearInterval(timerInterval); // Stop the updating interval
+function stopTimer(shouldLog = true) {
+    if (timerInterval !== null) {
+        clearInterval(timerInterval);
         timerInterval = null;
-
-        let endTime = Date.now();
-        let sessionDuration = Math.floor((endTime - startTime) / 1000);
-
-        if (sessionType === 'decrease') {
-            sessionDuration = -sessionDuration; // Make the duration negative for decreasing
-        }
-
-        // Adjust the total elapsedTime based on the session
-        elapsedTime += sessionDuration;
-        logs.push({
-            start: new Date(startTime),
-            end: new Date(endTime),
-            duration: sessionDuration
-        });
-
-        // Reset startTime and sessionType
-        startTime = null;
-        sessionType = null;
-
-        // Save logs to local storage
-        localStorage.setItem('logs', JSON.stringify(logs));
-        localStorage.setItem('elapsedTime', elapsedTime);
-
-        // Update display
-        updateDisplay();
-        displayLogs();
     }
+
+    let endTime = Date.now();
+    let sessionDuration = sessionStartTime ? Math.floor((endTime - sessionStartTime) / 1000) : 0;
+
+    // Check if a log should be created and if the sessionDuration is positive
+    if (shouldLog && sessionDuration > 0) {
+        logSession(sessionDuration, sessionType);
+    }
+
+    // Clear the startTime as the session has ended
+    sessionStartTime = null;
+    localStorage.removeItem('sessionStartTime'); // Remove from localStorage as it's no longer needed
 }
 
 // Function to update the timer based on the session type and elapsed time
@@ -221,12 +206,8 @@ function updateTimer() {
 // Call this function right before the page is unloaded or refreshed.
 function handleWindowUnload() {
     if (sessionType) {
-        // Update the timer to the current time before stopping.
         updateTimer();
-        // Log the session only if the duration is positive.
-        if (sessionStartTime) {
-            stopTimer(true); // Log the session
-        }
+        localStorage.setItem('sessionStartTime', sessionStartTime);
     }
 }
 
@@ -243,6 +224,20 @@ function decreaseTime() {
     elapsedTime--;
     localStorage.setItem('elapsedTime', elapsedTime); // Save updated time
     updateDisplay();
+}
+
+function logSession(duration, type) {
+    let endTime = Date.now();
+    let startTime = endTime - duration * 1000; // Calculate the start time
+
+    logs.push({
+        start: new Date(startTime),
+        end: new Date(endTime),
+        duration: Math.abs(duration),
+        category: type
+    });
+
+    updateLogDisplayAndStorage();
 }
 
 // Function to add log entry for manual time updates
@@ -376,27 +371,23 @@ function selectCategory(index, selectedValue) {
 
 // Override the window.onload function to include visibility change handling and to potentially continue timing
 window.onload = function() {
-    console.log('Loading stored values...');
+    // Load stored values
     if (localStorage.getItem('elapsedTime')) {
         elapsedTime = parseInt(localStorage.getItem('elapsedTime'));
-        console.log('Loaded elapsedTime:', elapsedTime);
-    } else {
-        console.log('No elapsedTime in localStorage');
+        updateDisplay();
     }
 
     if (localStorage.getItem('logs')) {
         logs = JSON.parse(localStorage.getItem('logs'));
-        console.log('Loaded logs:', logs);
-    } else {
-        console.log('No logs in localStorage');
+        displayLogs();
     }
 
-    // If there was a session running before the window was unloaded, continue it.
+    if (localStorage.getItem('sessionStartTime')) {
+        sessionStartTime = parseInt(localStorage.getItem('sessionStartTime'));
+    }
+    
+    // Continue the timer if there was an ongoing session
     if (sessionType) {
-        // The timer was running before, so start it again.
         startTimer(sessionType);
     }
-
-    updateDisplay();
-    displayLogs();
 };
