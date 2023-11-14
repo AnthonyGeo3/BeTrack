@@ -139,52 +139,66 @@ document.getElementById('updateTimeButton').onclick = function() {
     }
 };
 
-// This function will be called when the page is reloaded or when the tab is focused again.
-function handleVisibilityChange() {
-    if (!document.hidden) {
-        if (sessionType) {
-            // The tab is now in focus again, so update the timer based on the elapsed time while it was in the background.
-            updateTimer();
+// Function to handle visibility change or page unload
+function handleVisibilityOrUnload() {
+    // Calculate elapsed time since the last start
+    if (sessionStartTime) {
+        let currentElapsed = (Date.now() - sessionStartTime) / 1000;
+        if (sessionType === 'increase') {
+            elapsedTime += currentElapsed;
+        } else if (sessionType === 'decrease') {
+            elapsedTime = Math.max(0, elapsedTime - currentElapsed);
         }
-        // Always update the display when the tab is refocused.
         updateDisplay();
+        // Save the new elapsed time
+        localStorage.setItem('elapsedTime', elapsedTime.toString());
+        // Reset session start time for a new session
+        sessionStartTime = Date.now();
+        localStorage.setItem('sessionStartTime', sessionStartTime.toString());
     }
 }
 
-// Listen for visibility change events.
-document.addEventListener('visibilitychange', handleVisibilityChange, false);
+// Listen for visibility change and window unload events
+document.addEventListener('visibilitychange', handleVisibilityOrUnload);
+window.addEventListener('beforeunload', handleVisibilityOrUnload);
 
-// Function to start increasing or decreasing time
-function startTimer(isIncrease) {
-    if (!timerInterval) {
-        // Set the sessionType to 'increase' or 'decrease'
-        sessionType = isIncrease ? 'increase' : 'decrease';
-        startTime = Date.now(); // Record the start time of the session
-        timerInterval = setInterval(() => {
-            // This is just to keep the display updated, no longer to keep track of time
-            updateDisplay();
-        }, 1000);
+// Function to start timing
+function startTiming(isIncreasing) {
+    sessionType = isIncreasing ? 'increase' : 'decrease';
+    // Save the session type
+    localStorage.setItem('sessionType', sessionType);
+    // Get the current time and save it as the session start time
+    sessionStartTime = Date.now();
+    localStorage.setItem('sessionStartTime', sessionStartTime.toString());
+    // Start the interval to update the display
+    if (!increaseTimer && !decreaseTimer) {
+        timerInterval = setInterval(updateDisplay, 1000);
     }
 }
 
-// Function to stop the timer and log the elapsed time
-function stopTimer(shouldLog = true) {
-    if (timerInterval !== null) {
+// Function to stop timing and log the session
+function stopTiming() {
+    if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
     }
-
-    let endTime = Date.now();
-    let sessionDuration = sessionStartTime ? Math.floor((endTime - sessionStartTime) / 1000) : 0;
-
-    // Check if a log should be created and if the sessionDuration is positive
-    if (shouldLog && sessionDuration > 0) {
-        logSession(sessionDuration, sessionType);
-    }
-
-    // Clear the startTime as the session has ended
+    handleVisibilityOrUnload(); // Update elapsed time before stopping
+    // Log the session
+    logs.push({
+        start: new Date(sessionStartTime),
+        end: new Date(),
+        duration: sessionType === 'increase' ? elapsedTime : -elapsedTime,
+        category: sessionType
+    });
+    // Reset sessionType and sessionStartTime
+    sessionType = null;
     sessionStartTime = null;
-    localStorage.removeItem('sessionStartTime'); // Remove from localStorage as it's no longer needed
+    // Clear session information from localStorage
+    localStorage.removeItem('sessionType');
+    localStorage.removeItem('sessionStartTime');
+    // Save logs and update the display
+    localStorage.setItem('logs', JSON.stringify(logs));
+    displayLogs();
 }
 
 // Function to update the timer based on the session type and elapsed time
@@ -369,25 +383,19 @@ function selectCategory(index, selectedValue) {
 }
 
 
-// Override the window.onload function to include visibility change handling and to potentially continue timing
+// Function to handle page load
 window.onload = function() {
-    // Load stored values
-    if (localStorage.getItem('elapsedTime')) {
-        elapsedTime = parseInt(localStorage.getItem('elapsedTime'));
-        updateDisplay();
-    }
+    // Retrieve stored values
+    elapsedTime = parseInt(localStorage.getItem('elapsedTime')) || 0;
+    sessionStartTime = parseInt(localStorage.getItem('sessionStartTime'));
+    sessionType = localStorage.getItem('sessionType');
+    logs = JSON.parse(localStorage.getItem('logs')) || [];
 
-    if (localStorage.getItem('logs')) {
-        logs = JSON.parse(localStorage.getItem('logs'));
-        displayLogs();
+    // Update display based on the stored elapsed time
+    updateDisplay();
+    // If a session was ongoing, continue it
+    if (sessionType && sessionStartTime) {
+        startTiming(sessionType === 'increase');
     }
-
-    if (localStorage.getItem('sessionStartTime')) {
-        sessionStartTime = parseInt(localStorage.getItem('sessionStartTime'));
-    }
-    
-    // Continue the timer if there was an ongoing session
-    if (sessionType) {
-        startTimer(sessionType);
-    }
+    displayLogs();
 };
