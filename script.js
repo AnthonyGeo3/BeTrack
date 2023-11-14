@@ -139,6 +139,54 @@ document.getElementById('updateTimeButton').onclick = function() {
     }
 };
 
+// Function to start increasing or decreasing time
+function startTimer(isIncrease) {
+    if (!timerInterval) {
+        // Set the sessionType to 'increase' or 'decrease'
+        sessionType = isIncrease ? 'increase' : 'decrease';
+        startTime = Date.now(); // Record the start time of the session
+        timerInterval = setInterval(() => {
+            // This is just to keep the display updated, no longer to keep track of time
+            updateDisplay();
+        }, 1000);
+    }
+}
+
+// Function to stop the timer and log the elapsed time
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval); // Stop the updating interval
+        timerInterval = null;
+
+        let endTime = Date.now();
+        let sessionDuration = Math.floor((endTime - startTime) / 1000);
+
+        if (sessionType === 'decrease') {
+            sessionDuration = -sessionDuration; // Make the duration negative for decreasing
+        }
+
+        // Adjust the total elapsedTime based on the session
+        elapsedTime += sessionDuration;
+        logs.push({
+            start: new Date(startTime),
+            end: new Date(endTime),
+            duration: sessionDuration
+        });
+
+        // Reset startTime and sessionType
+        startTime = null;
+        sessionType = null;
+
+        // Save logs to local storage
+        localStorage.setItem('logs', JSON.stringify(logs));
+        localStorage.setItem('elapsedTime', elapsedTime);
+
+        // Update display
+        updateDisplay();
+        displayLogs();
+    }
+}
+
 function increaseTime() {
     elapsedTime++;
     localStorage.setItem('elapsedTime', elapsedTime); // Save updated time
