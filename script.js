@@ -139,17 +139,19 @@ document.getElementById('updateTimeButton').onclick = function() {
     }
 };
 
-// This function is called when the tab gains focus or the page is refreshed
+// This function will be called when the page is reloaded or when the tab is focused again.
 function handleVisibilityChange() {
     if (!document.hidden) {
-        if (startTime) { // If a session was running before the tab lost focus
-            updateTimer(); // Force an update to the timer
+        if (sessionType) {
+            // The tab is now in focus again, so update the timer based on the elapsed time while it was in the background.
+            updateTimer();
         }
-        updateDisplay(); // Always update the display when the tab is refocused
+        // Always update the display when the tab is refocused.
+        updateDisplay();
     }
 }
 
-// Event listener for when the tab's visibility changes
+// Listen for visibility change events.
 document.addEventListener('visibilitychange', handleVisibilityChange, false);
 
 // Function to start increasing or decreasing time
@@ -216,14 +218,19 @@ function updateTimer() {
     }
 }
 
-// This function ensures that the current session is logged before the window is unloaded
+// Call this function right before the page is unloaded or refreshed.
 function handleWindowUnload() {
     if (sessionType) {
-        stopTimer(true); // Stop the timer and log the session
+        // Update the timer to the current time before stopping.
+        updateTimer();
+        // Log the session only if the duration is positive.
+        if (sessionStartTime) {
+            stopTimer(true); // Log the session
+        }
     }
 }
 
-// Attach the event handler to the window's beforeunload event
+// Hook into the window's beforeunload event.
 window.addEventListener('beforeunload', handleWindowUnload);
 
 function increaseTime() {
@@ -384,9 +391,9 @@ window.onload = function() {
         console.log('No logs in localStorage');
     }
 
-    // Decide whether to continue timing based on previous state
-    if (sessionType && !timerInterval) {
-        // Continue the timer if the sessionType was set before unloading
+    // If there was a session running before the window was unloaded, continue it.
+    if (sessionType) {
+        // The timer was running before, so start it again.
         startTimer(sessionType);
     }
 
