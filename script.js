@@ -4,7 +4,7 @@ let elapsedTime = 0;
 let startTime = null;
 let logs = [];
 let sessionType = null; // 'increase' or 'decrease'
-
+// hello anthony
 // Start increasing time
 document.getElementById('startButton').onclick = function() {
     if (increaseTimer === null) {
