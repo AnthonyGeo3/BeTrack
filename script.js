@@ -308,34 +308,64 @@ function displayLogs() {
         let logEntryDiv = document.createElement('div');
         logEntryDiv.className = 'log-entry';
 
+        // Determine the sign of the duration
+        let sign = log.duration < 0 ? "-" : "";
+
+        // Convert absolute value of log.duration from seconds into hours, minutes, and seconds
+        let duration = Math.abs(log.duration);
+        let hours = Math.floor(duration / 3600);
+        let minutes = Math.floor((duration % 3600) / 60);
+        let seconds = duration % 60;
+
+        // Build the formatted duration string with the sign
+        let formattedDuration = sign +
+            (hours > 0 ? hours + " h " : "") +
+            ((hours > 0 || minutes > 0) ? minutes + " m " : "") +
+            seconds + " s  ";
+
         let logDetailsSpan = document.createElement('span');
         logDetailsSpan.className = 'log-details';
-        logDetailsSpan.textContent = `Start: ${new Date(log.start).toLocaleString()}, End: ${new Date(log.end).toLocaleString()}, Duration: ${log.duration} seconds`;
+        logDetailsSpan.textContent = `Start: ${new Date(log.start).toLocaleString()}, End: ${new Date(log.end).toLocaleString()}, Duration: ${formattedDuration}`;
 
+        // Append the log details to the entry div
+        logEntryDiv.appendChild(logDetailsSpan);
+
+        // Create a span for category display
         let categorySpan = document.createElement('span');
         categorySpan.id = `category-${index}`;
         categorySpan.className = 'log-category';
-        categorySpan.textContent = log.category ? ` - Category: ${log.category}` : ' - Category: None';
+        categorySpan.textContent = log.category ? `  Category: ${log.category}` : '  Category: None';
 
+        // Create a div for buttons
+        let buttonsDiv = document.createElement('div');
+        buttonsDiv.className = 'log-buttons';
+
+        // Create the category button
         let categoryButton = document.createElement('button');
         categoryButton.textContent = 'Category';
-        // The addCategory function will need to be modified to work with this setup
-        categoryButton.onclick = function() { addCategory(index, categorySpan.id); };
+        categoryButton.onclick = function() {
+            addCategory(index, `category-${index}`);
+        };
 
+        // Create the delete button
         let deleteButton = document.createElement('button');
         deleteButton.textContent = 'Delete';
-        deleteButton.onclick = function() { removeLog(index); };
+        deleteButton.onclick = function() {
+            removeLog(index);
+        };
 
-        // Append all elements to the log entry div
-        logEntryDiv.appendChild(logDetailsSpan);
-        logEntryDiv.appendChild(categorySpan);
-        logEntryDiv.appendChild(categoryButton);
-        logEntryDiv.appendChild(deleteButton);
-
-        // Append this log entry to the log container
-        logContainer.appendChild(logEntryDiv);
-    });
-}
+         // Append buttons to the buttons div
+         buttonsDiv.appendChild(categoryButton);
+         buttonsDiv.appendChild(deleteButton);
+ 
+         // Append the category span and buttons div to the entry div
+         logEntryDiv.appendChild(categorySpan);
+         logEntryDiv.appendChild(buttonsDiv);
+ 
+         // Append the entry div to the log container
+         logContainer.appendChild(logEntryDiv);
+     });
+ }
 
 
 function removeLog(index) {
