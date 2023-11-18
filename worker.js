@@ -1,30 +1,36 @@
 let intervalId;
 let startTime;
-let type; // 'increase' or 'decrease'
-let lastStopTime; // New variable to store the last stop time
+let type;
+let initialElapsedTime = 0; // Variable to hold initial elapsed time
 
-self.onmessage = function (event) {
+self.onmessage = function(event) {
     const data = event.data;
     switch (data.command) {
         case 'start':
-            if (lastStopTime) {
-                // Adjust startTime to account for elapsed time
-                startTime = Date.now() - (lastStopTime - startTime);
-            } else {
-                startTime = data.startTime;
-            }
+            startTime = data.startTime;
             type = data.type;
+            initialElapsedTime = data.elapsedTime || 0; // Set initialElapsedTime
+
+            // Ensure any existing interval is cleared before starting a new one
+            clearInterval(intervalId);
+
             intervalId = setInterval(() => {
                 const currentTime = Date.now();
-                let elapsed = (currentTime - startTime) / 1000;
-                elapsed = type === 'increase' ? elapsed : -elapsed;
+                let elapsed;
+
+                if (type === 'increase') {
+                    elapsed = ((currentTime - startTime) / 1000) + initialElapsedTime;
+                } else if (type === 'decrease') {
+                    // Decrease from the initialElapsedTime
+                    elapsed = initialElapsedTime - ((currentTime - startTime) / 1000);
+                    elapsed = Math.max(0, elapsed); // Ensure it doesn't go below 0
+                }
+
                 postMessage({ elapsed });
             }, 1000);
             break;
         case 'stop':
             clearInterval(intervalId);
-            lastStopTime = Date.now(); // Store the stop time
-            postMessage({ stopped: true });
             break;
     }
 };
