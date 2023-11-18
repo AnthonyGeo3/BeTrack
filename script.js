@@ -7,7 +7,7 @@ let logs = [];
 // Modify startTimer function to use the worker
 function startTimer(type) {
     sessionType = type;
-    worker.postMessage({ command: 'start', startTime: Date.now(), type: type });
+    worker.postMessage({ command: 'start', startTime: Date.now(), elapsedTime: elapsedTime, type: sessionType });
 }
 
 // Modify stopTimer function to stop the worker
