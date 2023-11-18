@@ -1,62 +1,54 @@
 // Create a new Web Worker
 let worker = new Worker('worker.js');
-let elapsedTime = 0;
+let elapsedTime = parseInt(localStorage.getItem('elapsedTime')) || 0; // Retrieve or initialize
 let sessionType = null; // 'increase' or 'decrease'
-let logs = [];
+let sessionStartTime = null;
+let logs = JSON.parse(localStorage.getItem('logs')) || []; // Retrieve or initialize
 
-// Function to start or continue timing
+// Modify startTimer function to use the worker
 function startTimer(type) {
-    // If the timer isn't already running, set the session type and start time
-    if (!sessionType) {
+    if (sessionType !== type) {
+        // If switching between increase/decrease, update elapsedTime first
+        if (sessionType) {
+            updateElapsedTime();
+        }
         sessionType = type;
-        // Save the session type
-        localStorage.setItem('sessionType', sessionType);
-        // Get the current time and save it as the session start time
         sessionStartTime = Date.now();
-        localStorage.setItem('sessionStartTime', sessionStartTime.toString());
     }
-
-    // Send a message to the worker to start the timer
     worker.postMessage({ command: 'start', startTime: sessionStartTime, type: type });
 }
 
-// Function to stop timing and log the session
-function stopTimer() {
-    // Send a message to the worker to stop the timer
-    worker.postMessage({ command: 'stop' });
-
-    // Handle the visibility or unload logic to update elapsed time
-    handleVisibilityOrUnload();
-
-    // Log the session and reset session variables
-    if (sessionType) {
-        let sessionEndTime = Date.now();
-        let sessionDuration = Math.floor((sessionEndTime - sessionStartTime) / 1000);
-        if (sessionType === 'increase') {
-            elapsedTime += sessionDuration;
-        } else if (sessionType === 'decrease') {
-            elapsedTime = Math.max(0, elapsedTime - sessionDuration);
-        }
-
-        logs.push({
-            start: new Date(sessionStartTime),
-            end: new Date(sessionEndTime),
-            duration: sessionDuration,
-            category: sessionType
-        });
-        localStorage.setItem('elapsedTime', elapsedTime.toString());
-        localStorage.removeItem('sessionType');
-        localStorage.removeItem('sessionStartTime');
+// Function to calculate and update elapsed time
+function updateElapsedTime() {
+    let currentElapsed = (Date.now() - sessionStartTime) / 1000;
+    if (sessionType === 'increase') {
+        elapsedTime += currentElapsed;
+    } else if (sessionType === 'decrease') {
+        elapsedTime = Math.max(0, elapsedTime - currentElapsed);
     }
-
-    // Reset sessionType and sessionStartTime
-    sessionType = null;
-    sessionStartTime = null;
-
-    // Save logs and update the display
-    localStorage.setItem('logs', JSON.stringify(logs));
-    displayLogs();
+    sessionStartTime = Date.now(); // Reset the start time for the new session
 }
+
+// Modify stopTimer function to stop the worker
+function stopTimer() {
+    worker.postMessage({ command: 'stop' });
+    updateElapsedTime(); // Update elapsedTime before stopping
+    sessionType = null; // Reset session type
+    localStorage.setItem('elapsedTime', elapsedTime); // Save updated time
+}
+
+// Handle messages from the worker
+worker.onmessage = function(event) {
+    const data = event.data;
+    if (data.hasOwnProperty('elapsed')) {
+        // Update elapsedTime and display
+        elapsedTime = data.elapsed;
+        updateDisplay();
+    } else if (data.stopped) {
+        // Log session when timer stops
+        logSession();
+    }
+};
 
 // Replace the existing start and stop button event handlers
 document.getElementById('startButton').onclick = function() {
@@ -200,13 +192,14 @@ function decreaseTime() {
     updateDisplay();
 }
 
-// Log session function
+// Function to log session
 function logSession() {
     const now = new Date();
-    const duration = sessionType === 'increase' ? elapsedTime : -elapsedTime;
+    const duration = elapsedTime; // Use updated elapsedTime
+    const start = new Date(now - duration * 1000);
 
     logs.push({
-        start: new Date(now - duration * 1000),
+        start: start,
         end: now,
         duration: duration,
         category: sessionType
@@ -215,10 +208,6 @@ function logSession() {
     // Save logs to local storage and display
     localStorage.setItem('logs', JSON.stringify(logs));
     displayLogs();
-
-    // Reset timer and session type
-    elapsedTime = 0;
-    sessionType = null;
 }
 
 // Function to add log entry for manual time updates
