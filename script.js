@@ -4,28 +4,59 @@ let elapsedTime = 0;
 let sessionType = null; // 'increase' or 'decrease'
 let logs = [];
 
-// Modify startTimer function to use the worker
+// Function to start or continue timing
 function startTimer(type) {
-    sessionType = type;
-    worker.postMessage({ command: 'start', startTime: Date.now(), type: type });
-}
-
-// Modify stopTimer function to stop the worker
-function stopTimer() {
-    worker.postMessage({ command: 'stop' });
-}
-
-// Handle messages from the worker
-worker.onmessage = function(event) {
-    const data = event.data;
-    if (data.hasOwnProperty('elapsed')) {
-        elapsedTime = data.elapsed;
-        updateDisplay();
-    } else if (data.stopped) {
-        // Log session when timer stops
-        logSession();
+    // If the timer isn't already running, set the session type and start time
+    if (!sessionType) {
+        sessionType = type;
+        // Save the session type
+        localStorage.setItem('sessionType', sessionType);
+        // Get the current time and save it as the session start time
+        sessionStartTime = Date.now();
+        localStorage.setItem('sessionStartTime', sessionStartTime.toString());
     }
-};
+
+    // Send a message to the worker to start the timer
+    worker.postMessage({ command: 'start', startTime: sessionStartTime, type: type });
+}
+
+// Function to stop timing and log the session
+function stopTimer() {
+    // Send a message to the worker to stop the timer
+    worker.postMessage({ command: 'stop' });
+
+    // Handle the visibility or unload logic to update elapsed time
+    handleVisibilityOrUnload();
+
+    // Log the session and reset session variables
+    if (sessionType) {
+        let sessionEndTime = Date.now();
+        let sessionDuration = Math.floor((sessionEndTime - sessionStartTime) / 1000);
+        if (sessionType === 'increase') {
+            elapsedTime += sessionDuration;
+        } else if (sessionType === 'decrease') {
+            elapsedTime = Math.max(0, elapsedTime - sessionDuration);
+        }
+
+        logs.push({
+            start: new Date(sessionStartTime),
+            end: new Date(sessionEndTime),
+            duration: sessionDuration,
+            category: sessionType
+        });
+        localStorage.setItem('elapsedTime', elapsedTime.toString());
+        localStorage.removeItem('sessionType');
+        localStorage.removeItem('sessionStartTime');
+    }
+
+    // Reset sessionType and sessionStartTime
+    sessionType = null;
+    sessionStartTime = null;
+
+    // Save logs and update the display
+    localStorage.setItem('logs', JSON.stringify(logs));
+    displayLogs();
+}
 
 // Replace the existing start and stop button event handlers
 document.getElementById('startButton').onclick = function() {
