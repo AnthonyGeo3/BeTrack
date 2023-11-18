@@ -1,52 +1,44 @@
-// Global variables
-let elapsedTime = parseInt(localStorage.getItem('elapsedTime')) || 0;
-let sessionStartTime = 0;
-let sessionType = null;
+// Create a new Web Worker
 let worker = new Worker('worker.js');
+let elapsedTime = 0;
+let sessionType = null; // 'increase' or 'decrease'
+let logs = [];
 
-// Start and stop timer functions
+// Modify startTimer function to use the worker
 function startTimer(type) {
-    if (!sessionType) {
-        sessionStartTime = Date.now();
-        sessionType = type;
-        worker.postMessage({ command: 'start' });
-    }
+    sessionType = type;
+    worker.postMessage({ command: 'start', startTime: Date.now(), type: type });
 }
 
+// Modify stopTimer function to stop the worker
 function stopTimer() {
     worker.postMessage({ command: 'stop' });
-    updateElapsedTime();
-    sessionType = null;
 }
 
-// Update elapsed time
-function updateElapsedTime() {
-    let now = Date.now();
-    let sessionDuration = (now - sessionStartTime) / 1000;
-    if (sessionType === 'decrease') {
-        sessionDuration = -sessionDuration;
-    }
-    elapsedTime += sessionDuration;
-    localStorage.setItem('elapsedTime', elapsedTime.toString());
-    sessionStartTime = now; // Reset for next session
-}
 // Handle messages from the worker
 worker.onmessage = function(event) {
-    if (event.data.tick) {
-        updateElapsedTime();
+    const data = event.data;
+    if (data.hasOwnProperty('elapsed')) {
+        elapsedTime = data.elapsed;
         updateDisplay();
+    } else if (data.stopped) {
+        // Log session when timer stops
+        logSession();
     }
 };
 
-// Event handler for 'Start' button
+// Replace the existing start and stop button event handlers
 document.getElementById('startButton').onclick = function() {
     startTimer('increase');
 };
 
-// Add event listeners to buttons
-document.getElementById('startButton').onclick = () => startTimer('increase');
-document.getElementById('reduceButton').onclick = () => startTimer('decrease');
-document.getElementById('stopButton').onclick = stopTimer;
+document.getElementById('reduceButton').onclick = function() {
+    startTimer('decrease');
+};
+
+document.getElementById('stopButton').onclick = function() {
+    stopTimer();
+};
 
 // Show Logs
 document.getElementById('viewLogButton').onclick = function() {
@@ -177,17 +169,24 @@ function decreaseTime() {
     updateDisplay();
 }
 
-// Function to log the session
-function logSession(start, end, duration) {
+// Log session function
+function logSession() {
+    const now = new Date();
+    const duration = sessionType === 'increase' ? elapsedTime : -elapsedTime;
+
     logs.push({
-        start: new Date(start),
-        end: new Date(end),
-        duration: Math.abs(duration),
+        start: new Date(now - duration * 1000),
+        end: now,
+        duration: duration,
         category: sessionType
     });
 
+    // Save logs to local storage and display
     localStorage.setItem('logs', JSON.stringify(logs));
     displayLogs();
+
+    // Reset timer and session type
+    sessionType = null;
 }
 
 // Function to add log entry for manual time updates
