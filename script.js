@@ -1,75 +1,43 @@
-let increaseTimer = null;
-let decreaseTimer = null;
+// Create a new Web Worker
+let worker = new Worker('worker.js');
 let elapsedTime = 0;
-let startTime = null;
-let logs = [];
 let sessionType = null; // 'increase' or 'decrease'
+let logs = [];
 
-// Start increasing time
-document.getElementById('startButton').onclick = function() {
-    if (increaseTimer === null) {
-        if (decreaseTimer === null && increaseTimer === null) {
-            startTime = new Date();
-            sessionType = 'increase'; // Set session type
-        }
-        if (decreaseTimer !== null) {
-            clearInterval(decreaseTimer);
-            decreaseTimer = null;
-        }
-        increaseTimer = setInterval(increaseTime, 1000);
+// Modify startTimer function to use the worker
+function startTimer(type) {
+    sessionType = type;
+    worker.postMessage({ command: 'start', startTime: Date.now(), type: type });
+}
+
+// Modify stopTimer function to stop the worker
+function stopTimer() {
+    worker.postMessage({ command: 'stop' });
+}
+
+// Handle messages from the worker
+worker.onmessage = function(event) {
+    const data = event.data;
+    if (data.hasOwnProperty('elapsed')) {
+        elapsedTime = data.elapsed;
+        updateDisplay();
+    } else if (data.stopped) {
+        // Log session when timer stops
+        logSession();
     }
 };
 
-// Start decreasing time
+// Replace the existing start and stop button event handlers
+document.getElementById('startButton').onclick = function() {
+    startTimer('increase');
+};
+
 document.getElementById('reduceButton').onclick = function() {
-    if (decreaseTimer === null) {
-        if (decreaseTimer === null && increaseTimer === null) {
-            startTime = new Date();
-            sessionType = 'decrease'; // Set session type
-        }
-        if (increaseTimer !== null) {
-            clearInterval(increaseTimer);
-            increaseTimer = null;
-        }
-        decreaseTimer = setInterval(decreaseTime, 1000);
-    }
+    startTimer('decrease');
 };
 
 document.getElementById('stopButton').onclick = function() {
-    // Only proceed if a timer was running
-    if (increaseTimer !== null || decreaseTimer !== null) {
-        let endTime = new Date(); 
-        let sessionDuration = Math.floor((endTime - startTime) / 1000);
-
-        // Determine if we are logging an increase or decrease session
-        if (sessionType === 'increase') {
-            sessionDuration = Math.abs(sessionDuration); // Ensure it's positive
-        } else if (sessionType === 'decrease') {
-            sessionDuration = -Math.abs(sessionDuration); // Ensure it's negative
-        }
-
-        logs.push({
-            start: startTime,
-            end: endTime,
-            duration: sessionDuration
-        });
-
-        // Clear both timers
-        clearInterval(increaseTimer);
-        clearInterval(decreaseTimer);
-        increaseTimer = null;
-        decreaseTimer = null;
-        
-        // Save logs to local storage
-        localStorage.setItem('logs', JSON.stringify(logs));
-        
-        // Reset session type and start time
-        sessionType = null;
-        startTime = null;
-
-        // Display the updated logs
-        displayLogs();
-    }
+    stopTimer();
 };
 
 // Show Logs
@@ -162,45 +130,6 @@ function handleVisibilityOrUnload() {
 document.addEventListener('visibilitychange', handleVisibilityOrUnload);
 window.addEventListener('beforeunload', handleVisibilityOrUnload);
 
-// Function to start timing
-function startTiming(isIncreasing) {
-    sessionType = isIncreasing ? 'increase' : 'decrease';
-    // Save the session type
-    localStorage.setItem('sessionType', sessionType);
-    // Get the current time and save it as the session start time
-    sessionStartTime = Date.now();
-    localStorage.setItem('sessionStartTime', sessionStartTime.toString());
-    // Start the interval to update the display
-    if (!increaseTimer && !decreaseTimer) {
-        timerInterval = setInterval(updateDisplay, 1000);
-    }
-}
-
-// Function to stop timing and log the session
-function stopTiming() {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-    handleVisibilityOrUnload(); // Update elapsed time before stopping
-    // Log the session
-    logs.push({
-        start: new Date(sessionStartTime),
-        end: new Date(),
-        duration: sessionType === 'increase' ? elapsedTime : -elapsedTime,
-        category: sessionType
-    });
-    // Reset sessionType and sessionStartTime
-    sessionType = null;
-    sessionStartTime = null;
-    // Clear session information from localStorage
-    localStorage.removeItem('sessionType');
-    localStorage.removeItem('sessionStartTime');
-    // Save logs and update the display
-    localStorage.setItem('logs', JSON.stringify(logs));
-    displayLogs();
-}
-
 // Function to update the timer based on the session type and elapsed time
 function updateTimer() {
     if (sessionType) {
@@ -240,18 +169,25 @@ function decreaseTime() {
     updateDisplay();
 }
 
-function logSession(duration, type) {
-    let endTime = Date.now();
-    let startTime = endTime - duration * 1000; // Calculate the start time
+// Log session function
+function logSession() {
+    const now = new Date();
+    const duration = sessionType === 'increase' ? elapsedTime : -elapsedTime;
 
     logs.push({
-        start: new Date(startTime),
-        end: new Date(endTime),
-        duration: Math.abs(duration),
-        category: type
+        start: new Date(now - duration * 1000),
+        end: now,
+        duration: duration,
+        category: sessionType
     });
 
-    updateLogDisplayAndStorage();
+    // Save logs to local storage and display
+    localStorage.setItem('logs', JSON.stringify(logs));
+    displayLogs();
+
+    // Reset timer and session type
+    elapsedTime = 0;
+    sessionType = null;
 }
 
 // Function to add log entry for manual time updates
