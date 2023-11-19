@@ -41,6 +41,8 @@ document.getElementById('reduceButton').onclick = function() {
 
 document.getElementById('stopButton').onclick = function() {
     stopTimer();
+    updateDisplay();
+        addLogEntry(timeChange >= 0 ? 'Manual Addition' : 'Manual Subtraction', timeChange);
 };
 
 // Show Logs
