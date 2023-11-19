@@ -2,6 +2,18 @@ document.addEventListener('DOMContentLoaded', (event) => {
     let timerValue = 0;
     let activities = [];
     let categories = new Set();
+    let timerId = null;
+
+    const myWorker = new Worker('HackTimerWorker.js');
+
+    myWorker.onmessage = function(e) {
+        if (e.data === 'tick') {
+            // Update timer value and UI
+            timerValue += (timerId === 'increase' ? 1 : -1);
+            timerValue = Math.max(0, timerValue); // Prevent negative values
+            updateTimeDisplay();
+        }
+    };
 
     const updateTimeDisplay = () => {
         document.getElementById('timeDisplay').innerText = `Time: ${timerValue}`;
@@ -23,16 +35,29 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     };
 
+    const startTimer = (increment = true) => {
+        myWorker.postMessage({command: 'start'});
+        timerId = increment ? 'increase' : 'decrease';
+    };
+
+    const stopTimer = () => {
+        myWorker.postMessage({command: 'stop'});
+        timerId = null;
+    };
+
+    // Attach functions to buttons
     document.getElementById('startButton').addEventListener('click', () => {
-        timerValue++;
-        updateTimeDisplay();
-        logActivity('Increase', 1, 'Custom Category'); // Example, replace with actual category logic
+        startTimer(true);
+        logActivity('Increase', 1, 'Custom Category'); // Replace with actual category logic
     });
 
     document.getElementById('reduceButton').addEventListener('click', () => {
-        timerValue = Math.max(0, timerValue - 1);
-        updateTimeDisplay();
-        logActivity('Decrease', 1, 'Custom Category'); // Example, replace with actual category logic
+        startTimer(false);
+        logActivity('Decrease', 1, 'Custom Category'); // Replace with actual category logic
+    });
+
+    document.getElementById('stopButton').addEventListener('click', () => {
+        stopTimer();
     });
 
     document.getElementById('updateTimeButton').addEventListener('click', () => {
