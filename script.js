@@ -3,11 +3,9 @@ let worker = new Worker('worker.js');
 let elapsedTime = 0;
 let sessionType = null; // 'increase' or 'decrease'
 let logs = [];
-let sessionStartTime = 0;
 
 // Modify startTimer function to use the worker
 function startTimer(type) {
-    sessionStartTime = elapsedTime;
     sessionType = type;
     worker.postMessage({ command: 'start', startTime: Date.now(), elapsedTime: elapsedTime, type: sessionType });
 }
@@ -15,6 +13,9 @@ function startTimer(type) {
 // Modify stopTimer function to stop the worker
 function stopTimer() {
     worker.postMessage({ command: 'stop' });
+    // Save logs and update the display
+    localStorage.setItem('logs', JSON.stringify(logs));
+    displayLogs();
 }
 
 // Handle messages from the worker
@@ -174,12 +175,12 @@ function decreaseTime() {
 // Log session function
 function logSession() {
     const now = new Date();
-    const sessionDuration = elapsedTime - sessionStartTime;
+    const duration = sessionType === 'increase' ? elapsedTime : -elapsedTime;
 
     logs.push({
-        start: new Date(now - sessionDuration * 1000),
+        start: new Date(now - duration * 1000),
         end: now,
-        duration: sessionDuration,
+        duration: duration,
         category: sessionType
     });
 
