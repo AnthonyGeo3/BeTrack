@@ -7,9 +7,9 @@ let sessionStartTime = 0;
 
 // Modify startTimer function to use the worker
 function startTimer(type) {
-    sessionStartTime = elapsedTime;
     sessionType = type;
-    worker.postMessage({ command: 'start', startTime: Date.now(), elapsedTime: elapsedTime, type: sessionType });
+    sessionStartTime = Date.now();  // Update session start time
+    worker.postMessage({ command: 'start', startTime: sessionStartTime, type: type });
 }
 
 // Modify stopTimer function to stop the worker
@@ -174,10 +174,11 @@ function decreaseTime() {
 // Log session function
 function logSession() {
     const now = new Date();
-    const sessionDuration = elapsedTime - sessionStartTime;
+    // Correct the sessionDuration calculation
+    const sessionDuration = (now.getTime() - sessionStartTime) / 1000;  // Convert milliseconds to seconds
 
     logs.push({
-        start: new Date(now - sessionDuration * 1000),
+        start: new Date(sessionStartTime),
         end: now,
         duration: sessionDuration,
         category: sessionType
