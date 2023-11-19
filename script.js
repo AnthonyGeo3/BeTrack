@@ -14,8 +14,16 @@ function startTimer(type) {
 function stopTimer() {
     worker.postMessage({ command: 'stop' });
     // Save logs and update the display
+    // Log the session
+    logs.push({
+        start: new Date(sessionStartTime),
+        end: new Date(),
+        duration: sessionType === 'increase' ? elapsedTime : -elapsedTime,
+        category: sessionType
+    });
     localStorage.setItem('logs', JSON.stringify(logs));
     displayLogs();
+    //addLogEntry(timeChange >= 0 ? 'Manual Addition' : 'Manual Subtraction', timeChange);
 }
 
 // Handle messages from the worker
@@ -41,8 +49,6 @@ document.getElementById('reduceButton').onclick = function() {
 
 document.getElementById('stopButton').onclick = function() {
     stopTimer();
-    updateDisplay();
-        addLogEntry(timeChange >= 0 ? 'Manual Addition' : 'Manual Subtraction', timeChange);
 };
 
 // Show Logs
