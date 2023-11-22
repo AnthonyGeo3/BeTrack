@@ -5,6 +5,7 @@ let startTime = null;
 let logs = [];
 let sessionType = null; // 'increase' or 'decrease'
 let initialTimeValue = 0; // New variable to store initial timer value when 'increase' or 'decrease' is pressed
+let categories = []; // This will store categories with their positive/negative association
 
 // Start increasing time
 document.getElementById('startButton').onclick = function() {
@@ -120,26 +121,39 @@ document.getElementById('exportButton').onclick = function() {
 
 // Function to update time based on input from a prompt
 document.getElementById('updateTimeButton').onclick = function() {
-    // Use a prompt to get the number of minutes from the user
-    let inputMinutes = prompt("Enter minutes to add or subtract (e.g., 20 or -20):");
+    // Use a prompt to get the input from the user
+    let userInput = prompt("Enter minutes to add or subtract (e.g., 20 or -20), or type 'reset' to reset the timer:");
 
-    // Check if the input is not null and is a valid number (positive or negative)
-    if (inputMinutes !== null && /^-?\d+$/.test(inputMinutes.trim())) {
-        // Parse the input value as an integer
-        let minutesToUpdate = parseInt(inputMinutes.trim(), 10);
+    // Check if the input is not null
+    if (userInput !== null) {
+        // Check if the input is 'reset' (case-insensitive)
+        if (userInput.trim().toLowerCase() === 'reset') {
+            // Calculate time change based on current timer value
+            let timeChange = elapsedTime > 0 ? -elapsedTime : Math.abs(elapsedTime);
 
-        // Convert minutes to seconds
-        let timeChange = minutesToUpdate * 60;
+            // Update elapsedTime with the time change
+            elapsedTime += timeChange;
 
-        // Update elapsedTime with the time change
-        elapsedTime += timeChange;
+            // Update display and logs
+            updateDisplay();
+            addLogEntry(timeChange >= 0 ? 'Manual Addition' : 'Manual Subtraction', timeChange);
+        } else if (/^-?\d+$/.test(userInput.trim())) {
+            // Parse the input value as an integer for minute adjustments
+            let minutesToUpdate = parseInt(userInput.trim(), 10);
 
-        // Update display and logs
-        updateDisplay();
-        addLogEntry(timeChange >= 0 ? 'Manual Addition' : 'Manual Subtraction', timeChange);
-    } else if (inputMinutes !== null) {
-        // If inputMinutes is not null and input is invalid, alert the user
-        alert('Please enter a valid whole number for minutes.');
+            // Convert minutes to seconds
+            let timeChange = minutesToUpdate * 60;
+
+            // Update elapsedTime with the time change
+            elapsedTime += timeChange;
+
+            // Update display and logs
+            updateDisplay();
+            addLogEntry(timeChange >= 0 ? 'Manual Addition' : 'Manual Subtraction', timeChange);
+        } else {
+            // Alert the user if the input is invalid
+            alert('Please enter a valid whole number for minutes or type "reset".');
+        }
     }
 };
 
@@ -351,12 +365,16 @@ function displayLogs() {
         let buttonsDiv = document.createElement('div');
         buttonsDiv.className = 'log-buttons';
 
-        // Create the category button
-        let categoryButton = document.createElement('button');
-        categoryButton.textContent = 'Category';
-        categoryButton.onclick = function() {
-            addCategory(index, `category-${index}`);
-        };
+            // Determine if the duration is positive or negative
+            let isPositiveDuration = log.duration >= 0;
+
+            // Create the category button
+            let categoryButton = document.createElement('button');
+            categoryButton.textContent = 'Category';
+            categoryButton.dataset.isPositiveDuration = isPositiveDuration; // Store the duration type
+            categoryButton.onclick = function() {
+                addCategory(index, `category-${index}`, isPositiveDuration);
+            };
 
         // Create the delete button
         let deleteButton = document.createElement('button');
@@ -379,41 +397,65 @@ function displayLogs() {
  }
 
 
-function removeLog(index) {
-    logs.splice(index, 1); // Remove the log entry at the given index
-    localStorage.setItem('logs', JSON.stringify(logs)); // Update local storage
-    displayLogs(); // Refresh the log display
+ function removeLog(index) {
+    // Get the category of the log to be removed
+    let categoryToRemove = logs[index].category;
+
+    // Remove the log entry at the given index
+    logs.splice(index, 1);
+
+    // Update local storage with the new logs array
+    localStorage.setItem('logs', JSON.stringify(logs));
+
+    // Check if the category is unique (not used by any other log)
+    if (!logs.some(log => log.category === categoryToRemove)) {
+        // Remove the category from the categories array
+        categories = categories.filter(cat => cat.name !== categoryToRemove);
+
+        // Update the categories in local storage
+        localStorage.setItem('categories', JSON.stringify(categories));
+    }
+
+    // Refresh the log display
+    displayLogs();
 }
 
-function addCategory(index, categorySpanId) {
+function addCategory(index, categorySpanId, isPositiveDuration) {
     let categorySpan = document.getElementById(categorySpanId);
     let currentCategory = logs[index].category || 'None';
-    let uniqueCategories = getUniqueCategories();
+
+    // Filter categories based on duration type
+    let filteredCategories = categories.filter(cat => cat.isPositive === isPositiveDuration);
 
     let dropdownHTML = `<select id="categorySelect-${index}" onchange="selectCategory(${index}, this.value)">
                             <option value="">Select a category</option>
-                            ${uniqueCategories.map(cat => `<option value="${cat}" ${cat === currentCategory ? 'selected' : ''}>${cat}</option>`).join('')}
+                            ${filteredCategories.map(cat => `<option value="${cat.name}" ${cat.name === currentCategory ? 'selected' : ''}>${cat.name}</option>`).join('')}
                             <option value="new">Add New Category</option>
                         </select>`;
 
     categorySpan.innerHTML = dropdownHTML;
 }
 
-function getUniqueCategories() {
-    let uniqueCategories = new Set();
-    logs.forEach(log => {
-        if (log.category) {
-            uniqueCategories.add(log.category);
-        }
-    });
-    return Array.from(uniqueCategories);
+function addNewCategory(categoryName, isPositive) {
+    // Add the new category to the global categories array
+    categories.push({ name: categoryName, isPositive: isPositive });
+    // Update the categories in local storage
+    localStorage.setItem('categories', JSON.stringify(categories));
+}
+
+// Modified getUniqueCategories function
+function getUniqueCategories(isPositiveDuration) {
+    return categories.filter(cat => cat.isPositive === isPositiveDuration);
 }
 
 function selectCategory(index, selectedValue) {
+    let isPositiveDuration = logs[index].duration >= 0; // Check if the duration is positive or negative
+
     if (selectedValue === 'new') {
         let newCategory = prompt("Enter a new category:");
-        if (newCategory) {
+        if (newCategory && !categories.some(cat => cat.name === newCategory && cat.isPositive === isPositiveDuration)) {
             logs[index].category = newCategory;
+            addNewCategory(newCategory, isPositiveDuration); // Add the new category
         }
     } else {
         logs[index].category = selectedValue;
@@ -423,7 +465,6 @@ function selectCategory(index, selectedValue) {
     displayLogs(); // Refresh the log display
 }
 
-
 // Function to handle page load
 window.onload = function() {
     // Retrieve stored values
@@ -431,6 +472,8 @@ window.onload = function() {
     sessionStartTime = parseInt(localStorage.getItem('sessionStartTime'));
     sessionType = localStorage.getItem('sessionType');
     logs = JSON.parse(localStorage.getItem('logs')) || [];
+    // Initialize categories from local storage
+    categories = JSON.parse(localStorage.getItem('categories')) || [];
 
     // Update display based on the stored elapsed time
     updateDisplay();
