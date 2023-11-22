@@ -12,6 +12,7 @@ document.getElementById('startButton').onclick = function() {
         if (decreaseTimer === null && increaseTimer === null) {
             startTime = new Date();
             initialTimeValue = elapsedTime; // Record the current timer value
+            console.log("Session started. Initial Time Value: " + initialTimeValue + "s, Elapsed Time: " + elapsedTime + "s");
             sessionType = 'increase'; // Set session type
         }
         if (decreaseTimer !== null) {
@@ -48,6 +49,7 @@ document.getElementById('stopButton').onclick = function() {
         } else if (sessionType === 'decrease') {
             sessionDuration = -Math.abs(sessionDuration);
         }
+        console.log("Session Duration: " + sessionDuration + "s, Initial Time Value: " + initialTimeValue + "s");
 
         logs.push({
             start: startTime,
@@ -62,6 +64,7 @@ document.getElementById('stopButton').onclick = function() {
 
         // Update elapsedTime based on the initial time value and session duration
         elapsedTime = initialTimeValue + sessionDuration;
+        console.log("Updated Elapsed Time: " + elapsedTime + "s");
         localStorage.setItem('elapsedTime', elapsedTime.toString());
 
         sessionType = null;
