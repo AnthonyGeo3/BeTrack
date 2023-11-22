@@ -275,6 +275,13 @@ function addLogEntry(action, timeChange) {
 
 function updateDisplay() {
     let timeDisplay = document.getElementById('timeDisplay');
+
+    // Check if the initialTimeValue and sessionDuration are set
+    if (typeof initialTimeValue !== 'undefined' && typeof sessionDuration !== 'undefined') {
+        // Adjust the elapsedTime based on the initial value and the duration
+        elapsedTime = initialTimeValue + sessionDuration;
+    }
+
     let totalSeconds = elapsedTime;
     
     // Calculate absolute values for hours, minutes, and seconds
@@ -293,15 +300,15 @@ function updateDisplay() {
 
     timeDisplay.textContent = 'Time: ' + formattedTime;
 
-    // Update styles and localStorage as in your existing updateDisplay function...
+    // Update the color based on the sign of elapsedTime
     if (elapsedTime < 0) {
-        timeDisplay.style.color = 'red'; // Change font color to red if the time is negative
+        timeDisplay.style.color = 'red';
     } else {
-        timeDisplay.style.color = 'white'; // Change it back to white (or any other default color)
+        timeDisplay.style.color = 'white';
     }
 
-    // Save to local storage
-    localStorage.setItem('elapsedTime', elapsedTime);
+    // Save the updated elapsedTime to local storage
+    localStorage.setItem('elapsedTime', elapsedTime.toString());
 }
 
 function displayLogs() {
