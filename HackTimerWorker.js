@@ -1,16 +1,36 @@
-// This script will be executed in a Web Worker.
-self.addEventListener('message', function(e) {
-    var data = e.data;
+let intervalId;
+let startTime;
+let type;
+let initialElapsedTime = 0; // Variable to hold initial elapsed time
+
+self.onmessage = function(event) {
+    const data = event.data;
     switch (data.command) {
         case 'start':
-            // Start a new timer
-            self.timerId = setInterval(function() {
-                postMessage('tick');
-            }, 1000); // Sends a message back every second
+            startTime = data.startTime;
+            type = data.type;
+            initialElapsedTime = data.elapsedTime || 0; // Set initialElapsedTime
+
+            // Ensure any existing interval is cleared before starting a new one
+            clearInterval(intervalId);
+
+            intervalId = setInterval(() => {
+                const currentTime = Date.now();
+                let elapsed;
+
+                if (type === 'increase') {
+                    elapsed = ((currentTime - startTime) / 1000) + initialElapsedTime;
+                } else if (type === 'decrease') {
+                    // Decrease from the initialElapsedTime
+                    elapsed = initialElapsedTime - ((currentTime - startTime) / 1000);
+                    elapsed = Math.max(0, elapsed); // Ensure it doesn't go below 0
+                }
+
+                postMessage({ elapsed });
+            }, 1000);
             break;
         case 'stop':
-            // Stop the current timer
-            clearInterval(self.timerId);
+            clearInterval(intervalId);
             break;
     }
-}, false);
+};
