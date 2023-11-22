@@ -4,12 +4,14 @@ let elapsedTime = 0;
 let startTime = null;
 let logs = [];
 let sessionType = null; // 'increase' or 'decrease'
+let initialTimeValue = 0; // New variable to store initial timer value when 'increase' or 'decrease' is pressed
 
 // Start increasing time
 document.getElementById('startButton').onclick = function() {
     if (increaseTimer === null) {
         if (decreaseTimer === null && increaseTimer === null) {
             startTime = new Date();
+            initialTimeValue = elapsedTime; // Record the current timer value
             sessionType = 'increase'; // Set session type
         }
         if (decreaseTimer !== null) {
@@ -25,6 +27,7 @@ document.getElementById('reduceButton').onclick = function() {
     if (decreaseTimer === null) {
         if (decreaseTimer === null && increaseTimer === null) {
             startTime = new Date();
+            initialTimeValue = elapsedTime; // Record the current timer value
             sessionType = 'decrease'; // Set session type
         }
         if (increaseTimer !== null) {
@@ -36,16 +39,14 @@ document.getElementById('reduceButton').onclick = function() {
 };
 
 document.getElementById('stopButton').onclick = function() {
-    // Only proceed if a timer was running
     if (increaseTimer !== null || decreaseTimer !== null) {
         let endTime = new Date(); 
         let sessionDuration = Math.floor((endTime - startTime) / 1000);
 
-        // Determine if we are logging an increase or decrease session
         if (sessionType === 'increase') {
-            sessionDuration = Math.abs(sessionDuration); // Ensure it's positive
+            sessionDuration = Math.abs(sessionDuration);
         } else if (sessionType === 'decrease') {
-            sessionDuration = -Math.abs(sessionDuration); // Ensure it's negative
+            sessionDuration = -Math.abs(sessionDuration);
         }
 
         logs.push({
@@ -54,21 +55,21 @@ document.getElementById('stopButton').onclick = function() {
             duration: sessionDuration
         });
 
-        // Clear both timers
         clearInterval(increaseTimer);
         clearInterval(decreaseTimer);
         increaseTimer = null;
         decreaseTimer = null;
-        
-        // Save logs to local storage
-        localStorage.setItem('logs', JSON.stringify(logs));
-        
-        // Reset session type and start time
+
+        // Update elapsedTime based on the initial time value and session duration
+        elapsedTime = initialTimeValue + sessionDuration;
+        localStorage.setItem('elapsedTime', elapsedTime.toString());
+
         sessionType = null;
         startTime = null;
 
-        // Display the updated logs
+        localStorage.setItem('logs', JSON.stringify(logs));
         displayLogs();
+        updateDisplay(); // Update the timer display with the corrected value
     }
 };
 
