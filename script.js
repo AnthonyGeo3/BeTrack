@@ -77,20 +77,30 @@ document.getElementById('stopButton').onclick = function() {
     }
 };
 
-// Show Logs
-document.getElementById('viewLogButton').onclick = function() {
-    document.getElementById('homePage').style.display = 'none';
-    document.getElementById('logPage').style.display = 'block';
-    document.getElementById('exportButton').style.display = 'inline-block'; // Show the export button
-    displayLogs();
-};
+// Function to toggle logs and button text
+function toggleLogs() {
+    let logContainer = document.getElementById('logPage');
+    let exportButton = document.getElementById('exportButton');
+    let toggleButton = document.getElementById('toggleLogsButton');
 
-// Show Home
-document.getElementById('homeButton').onclick = function() {
-    document.getElementById('homePage').style.display = 'block';
-    document.getElementById('logPage').style.display = 'none';
-    document.getElementById('exportButton').style.display = 'none'; // Hide the export button
-};
+    // Check the current state and toggle
+    if (logContainer.style.display === 'none') {
+        logContainer.style.display = 'block';
+        exportButton.style.display = 'inline-block';
+        toggleButton.textContent = 'Hide Logs';
+    } else {
+        logContainer.style.display = 'none';
+        exportButton.style.display = 'none';
+        toggleButton.textContent = 'Show Logs';
+    }
+}
+
+// Event listener for the toggle button
+document.getElementById('toggleLogsButton').onclick = toggleLogs;
+
+// Initialize the log container and export button to be hidden on page load
+document.getElementById('logPage').style.display = 'none';
+document.getElementById('exportButton').style.display = 'none';
 
 document.getElementById('exportButton').onclick = function() {
     let csvContent = "data:text/csv;charset=utf-8,";
